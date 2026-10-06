@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mica & Cris - ¡Nos Casamos!</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&family=Great+Vibes&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome para Íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Configuración personalizada de Tailwind con la paleta de la imagen -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        theme: {
+                            darkgreen: '#657463',   // Verde oscuro
+                            lightgreen: '#90a28e',  // Verde claro
+                            darkrust: '#9a4628',    // Terracota oscuro
+                            lightrust: '#cd6239',   // Naranja claro
+                            beige: '#cfc9b6',       // Beige
+                            bg: '#f9f8f5'           // Fondo general
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['Montserrat', 'sans-serif'],
+                        script: ['"Great Vibes"', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f9f8f5; /* theme.bg */
+            color: #657463; /* theme.darkgreen */
+            overflow-x: hidden;
+        }
+        
+        #audio-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #f9f8f5; /* theme.bg */
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+
+        #audio-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background-color: #9a4628; /* theme.darkrust */
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 90;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, background-color 0.3s;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+            background-color: #cd6239; /* theme.lightrust */
+        }
+
+        .hero-bg {
+            background-image: linear-gradient(rgba(107, 122, 105, 0.5), rgba(107, 122, 105, 0.5)), url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .flower-divider {
+            width: 150px;
+            height: auto;
+            margin: 0 auto;
+            opacity: 0.8;
+        }
+
+        /* Animaciones al hacer scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 1s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Toast notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #657463;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s, visibility 0.3s;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* Timeline styles */
+        .timeline-container {
+            position: relative;
+        }
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background-color: #cfc9b6; /* theme.beige */
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -1px;
+        }
+        .timeline-item {
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            right: -8px;
+            background-color: #cd6239; /* theme.lightrust */
+            border: 3px solid #f9f8f5; /* theme.bg */
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .left { left: 0; padding-right: 40px; text-align: right; }
+        .right { left: 50%; padding-left: 40px; text-align: left; }
+        .right::after { left: -8px; }
+
+        @media screen and (max-width: 768px) {
+            .timeline-container::after { left: 31px; }
+            .timeline-item { width: 100%; padding-left: 70px; padding-right: 25px; text-align: left; }
+            .left::after, .right::after { left: 23px; }
+            .left { left: 0; }
+            .right { left: 0; }
+        }
+        
+        .color-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 6px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Reemplazamos el elemento <audio> por un div para el reproductor de YouTube -->
+    <div id="youtube-player" style="display: none;"></div>
+
+    <!-- Overlay Inicial para permitir reproducción de audio -->
+    <div id="audio-overlay">
+        <h2 class="font-script text-5xl md:text-7xl text-theme-darkgreen mb-6 text-center px-4">Mica & Cris</h2>
+        <p class="font-sans text-sm tracking-widest uppercase mb-8 text-theme-darkrust text-center px-4">Estás invitado a nuestra boda</p>
+        
+        <div class="text-center mb-8 animate-pulse">
+            <p class="font-sans text-xs uppercase tracking-widest text-theme-darkgreen mb-2">¡Enciende el volumen!</p>
+            <i class="fa-solid fa-arrow-down text-theme-darkrust"></i>
+        </div>
+        
+        <!-- Botón modificado para mostrar el ícono de un sobre/carta -->
+        <button id="enter-btn" class="px-8 py-4 bg-theme-darkrust text-white rounded-full font-sans tracking-wide hover:bg-theme-lightrust transition-colors duration-300 flex items-center gap-3 shadow-lg shadow-theme-darkrust/30 hover:scale-105 transform">
+            <i class="fa-solid fa-envelope-open-text text-xl"></i> Abrir invitación
+        </button>
+    </div>
+
+    <!-- Botón flotante para controlar música -->
+    <div id="music-toggle" class="music-control hidden" style="display: none;">
+        <i class="fa-solid fa-volume-high" id="music-icon"></i>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="hero-bg h-screen w-full flex flex-col items-center justify-center text-white relative">
+        <div class="z-10 text-center px-4 reveal active">
+            <p class="font-sans tracking-[0.3em] uppercase text-sm md:text-base mb-4 text-theme-beige">¡Nos Casamos!</p>
+            <h1 class="font-script text-7xl md:text-9xl mb-6 text-white drop-shadow-lg">Mica & Cris</h1>
+            <p class="font-serif italic text-xl md:text-2xl mb-12 drop-shadow-md">5 de Diciembre de 2026</p>
+            
+            <!-- Countdown Timer -->
+            <div class="flex gap-4 md:gap-8 justify-center mt-8">
+                <div class="flex flex-col items-center bg-theme-darkgreen/40 backdrop-blur-sm p-4 rounded-lg w-20 md:w-24 border border-white/20">
+                    <span id="days" class="font-serif text-3xl md:text-5xl">00</span>
+                    <span class="font-sans text-xs uppercase tracking-widest mt-1">Días</span>
+                </div>
+                <div class="flex flex-col items-center bg-theme-darkgreen/40 backdrop-blur-sm p-4 rounded-lg w-20 md:w-24 border border-white/20">
+                    <span id="hours" class="font-serif text-3xl md:text-5xl">00</span>
+                    <span class="font-sans text-xs uppercase tracking-widest mt-1">Hs</span>
+                </div>
+                <div class="flex flex-col items-center bg-theme-darkgreen/40 backdrop-blur-sm p-4 rounded-lg w-20 md:w-24 border border-white/20">
+                    <span id="minutes" class="font-serif text-3xl md:text-5xl">00</span>
+                    <span class="font-sans text-xs uppercase tracking-widest mt-1">Min</span>
+                </div>
+                <div class="flex flex-col items-center bg-theme-darkgreen/40 backdrop-blur-sm p-4 rounded-lg w-20 md:w-24 border border-white/20">
+                    <span id="seconds" class="font-serif text-3xl md:text-5xl">00</span>
+                    <span class="font-sans text-xs uppercase tracking-widest mt-1">Seg</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-10 animate-bounce cursor-pointer" onclick="document.getElementById('intro').scrollIntoView()">
+            <i class="fa-solid fa-chevron-down text-3xl text-white/80 hover:text-white transition-colors"></i>
+        </div>
+    </header>
+
+    <!-- Intro / Frase -->
+    <section id="intro" class="py-24 px-6 text-center max-w-4xl mx-auto reveal">
+        <svg class="flower-divider mb-8" viewBox="0 0 100 30" fill="none" stroke="#8fa08d" stroke-width="1">
+            <path d="M10,15 Q30,5 50,15 T90,15" fill="none"/>
+            <circle cx="50" cy="15" r="3" fill="#8fa08d"/>
+            <circle cx="30" cy="11" r="1.5" fill="#8fa08d"/>
+            <circle cx="70" cy="19" r="1.5" fill="#8fa08d"/>
+        </svg>
+        <p class="font-serif text-2xl md:text-3xl italic leading-relaxed text-theme-darkgreen">
+            "Por encima de todo, vístanse de amor, que es el vínculo perfecto."
+            <br>
+            <span class="text-xl text-theme-lightgreen mt-4 block">Colosenses 3:14</span>
+        </p>
+        <h3 class="font-sans text-sm tracking-widest uppercase mt-12 text-theme-darkrust">Los esperamos</h3>
+    </section>
+
+    <!-- Dónde y Cuándo -->
+    <section class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-6">
+            <h2 class="font-script text-5xl md:text-6xl text-center text-theme-darkgreen mb-16 reveal">Ceremonia y Fiesta</h2>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Ceremonia -->
+                <div class="bg-theme-bg p-10 rounded-2xl text-center shadow-sm border border-theme-beige/30 reveal">
+                    <div class="w-16 h-16 mx-auto bg-theme-beige/50 rounded-full flex items-center justify-center mb-6 text-theme-darkrust">
+                        <i class="fa-solid fa-ring text-2xl"></i>
+                    </div>
+                    <h3 class="font-serif text-3xl mb-2 text-theme-darkgreen">Ceremonia Religiosa</h3>
+                    <p class="font-sans text-sm font-semibold tracking-widest mb-4 text-theme-darkrust">18:00 HS</p>
+                    <p class="font-sans text-gray-600 mb-1">Iglesia Puerto de Salvación</p>
+                    <p class="font-sans text-gray-600 mb-6 text-sm">Ñemby</p>
+                    <a href="https://www.google.com/maps/place/Iglesia+Puerto+de+Salvacion/@-25.3670623,-57.5565389,17z/data=!3m1!4b1!4m6!3m5!1s0x945dabff6589e6ff:0xc4fa7253dc06eea2!8m2!3d-25.3670623!4d-57.553964!16s%2Fg%2F11c5r5knv4?entry=ttu&g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="inline-block px-8 py-3 border border-theme-lightgreen text-theme-darkgreen hover:bg-theme-lightgreen hover:text-white transition-colors duration-300 rounded-full font-sans text-sm uppercase tracking-wider">
+                        Ver Ubicación
+                    </a>
+                </div>
+
+                <!-- Recepción -->
+                <div class="bg-theme-bg p-10 rounded-2xl text-center shadow-sm border border-theme-beige/30 reveal">
+                    <div class="w-16 h-16 mx-auto bg-theme-beige/50 rounded-full flex items-center justify-center mb-6 text-theme-darkrust">
+                        <i class="fa-solid fa-champagne-glasses text-2xl"></i>
+                    </div>
+                    <h3 class="font-serif text-3xl mb-2 text-theme-darkgreen">Fiesta de Bodas</h3>
+                    <p class="font-sans text-sm font-semibold tracking-widest mb-4 text-theme-darkrust">19:00 HS</p>
+                    <p class="font-sans text-gray-600 mb-1">La fide eventos</p>
+                    <p class="font-sans text-gray-600 mb-6 text-sm">Ñemby</p>
+                    <a href="https://www.google.com/maps/@-25.369529,-57.5562887,3a,53.4y,139.96h,83.8t/data=!3m7!1e1!3m5!1sx9xz-EL-T7QsSTO9hFUwnw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D6.203131964886026%26panoid%3Dx9xz-EL-T7QsSTO9hFUwnw%26yaw%3D139.96374645225794!7i16384!8i8192!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="inline-block px-8 py-3 border border-theme-lightgreen text-theme-darkgreen hover:bg-theme-lightgreen hover:text-white transition-colors duration-300 rounded-full font-sans text-sm uppercase tracking-wider">
+                        Ver Ubicación
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detalles (Dress code & Regalos) -->
+    <section class="py-20 bg-theme-darkgreen text-white">
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12">
+            
+            <!-- Dress Code Detallado -->
+            <div class="text-center reveal bg-black/20 backdrop-blur-sm p-8 rounded-2xl border border-theme-lightgreen/30 relative">
+                <i class="fa-solid fa-user-tie text-5xl mb-6 text-theme-beige"></i>
+                <h3 class="font-serif text-4xl mb-4">Dress Code</h3>
+                <p class="font-sans text-lg font-semibold tracking-widest text-theme-lightrust mb-6">ELEGANTE</p>
+                
+                <div class="grid grid-cols-2 gap-6 text-left mb-8">
+                    <div>
+                        <h4 class="font-serif text-xl text-theme-beige mb-2 border-b border-theme-lightgreen/50 pb-1">Mujeres</h4>
+                        <p class="font-sans text-sm text-gray-200 mb-3">Vestido largo o midi elegante.</p>
+                        <p class="font-sans text-xs italic text-theme-beige mb-2">Por favor, reservar el blanco para la novia.</p>
+                        <div class="mt-3">
+                            <p class="font-sans text-[10px] uppercase tracking-widest text-theme-beige mb-2">Paleta Sugerida</p>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="color-swatch" style="background-color: #657463;" title="Verde Oscuro"></span>
+                                <span class="color-swatch" style="background-color: #90a28e;" title="Verde Claro"></span>
+                                <span class="color-swatch" style="background-color: #9a4628;" title="Terracota Oscuro"></span>
+                                <span class="color-swatch" style="background-color: #cd6239;" title="Naranja Claro"></span>
+                                <span class="color-swatch" style="background-color: #cfc9b6;" title="Beige"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-serif text-xl text-theme-beige mb-2 border-b border-theme-lightgreen/50 pb-1">Varones</h4>
+                        <p class="font-sans text-sm text-gray-200 mb-3">Traje completo elegante.</p>
+                        <div class="mt-8">
+                            <p class="font-sans text-[10px] uppercase tracking-widest text-theme-beige mb-2">Colores Sugeridos</p>
+                            <div class="flex">
+                                <span class="color-swatch" style="background-color: #1a202c;" title="Negro"></span>
+                                <span class="color-swatch" style="background-color: #2d3748;" title="Gris"></span>
+                                <span class="color-swatch" style="background-color: #1e3a8a;" title="Azul Marino"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aviso Sin Niños -->
+                <div class="mt-6 pt-6 border-t border-theme-lightgreen/30">
+                    <i class="fa-solid fa-moon text-theme-beige mb-2 text-xl"></i>
+                    <p class="font-serif text-xl italic text-theme-beige">Noche de Adultos</p>
+                    <p class="font-sans text-xs text-gray-300 mt-2">Amamos a sus pequeños, pero hemos decidido que nuestra boda sea una celebración exclusiva para adultos. ¡Aprovechen la noche para disfrutar!</p>
+                </div>
+            </div>
+
+            <!-- Regalos -->
+            <div class="text-center reveal bg-black/20 backdrop-blur-sm p-8 rounded-2xl border border-theme-lightgreen/30 flex flex-col justify-center h-full">
+                <i class="fa-solid fa-gift text-5xl mb-6 text-theme-beige"></i>
+                <h3 class="font-serif text-4xl mb-4 text-white">Mesa de Regalos</h3>
+                <p class="font-sans text-sm text-gray-200 mb-6 leading-relaxed">
+                    Nuestro mejor regalo es su presencia para compartir este día tan especial. Pero si desean ayudarnos con nuestra luna de miel, pueden hacerlo a través de la siguiente cuenta:
+                </p>
+                
+                <div class="bg-theme-darkgreen/80 p-6 rounded-xl border border-theme-lightgreen/30 text-left mb-6 shadow-inner">
+                    <div class="mb-4">
+                        <p class="font-sans text-xs text-theme-beige uppercase tracking-wider mb-1">Banco</p>
+                        <p class="font-sans font-medium text-white text-sm">Banco Continental</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="font-sans text-xs text-theme-beige uppercase tracking-wider mb-1">Titular</p>
+                        <p class="font-sans font-medium text-white text-sm">TERESITA MICAELA MENDOZA SILVA</p>
+                    </div>
+                    
+                    <!-- CBU / CVU -->
+                    <div class="flex justify-between items-center mb-4 border-b border-theme-lightgreen/30 pb-4">
+                        <div class="flex-1 overflow-hidden pr-2">
+                            <p class="font-sans text-xs text-theme-beige uppercase tracking-wider mb-1">Cuenta</p>
+                            <p class="font-sans font-medium font-mono text-sm text-white truncate">460064851303</p>
+                        </div>
+                        <button onclick="copyText('123456789')" class="text-theme-beige hover:text-theme-lightrust p-3 bg-theme-lightgreen/40 rounded-lg transition-colors flex-shrink-0" title="Copiar Cuenta">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+
+                     <div class="flex justify-between items-center mb-4 border-b border-theme-lightgreen/30 pb-4">
+                        <div class="flex-1 overflow-hidden pr-2">
+                            <p class="font-sans text-xs text-theme-beige uppercase tracking-wider mb-1">Documento</p>
+                            <p class="font-sans font-medium font-mono text-sm text-white truncate">5974184</p>
+                        </div>
+                        <button onclick="copyText('123456789')" class="text-theme-beige hover:text-theme-lightrust p-3 bg-theme-lightgreen/40 rounded-lg transition-colors flex-shrink-0" title="Copiar Cuenta">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Alias -->
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1 overflow-hidden pr-2">
+                            <p class="font-sans text-xs text-theme-beige uppercase tracking-wider mb-1">Alias Mica</p>
+                            <p class="font-sans font-medium font-mono text-sm text-white truncate">0994922451</p>
+
+                        </div>
+                        <button onclick="copyText('123456')" class="text-theme-beige hover:text-theme-lightrust p-3 bg-theme-lightgreen/40 rounded-lg transition-colors flex-shrink-0" title="Copiar Alias">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                    <br>
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1 overflow-hidden pr-2">
+                            <p class="font-sans text-xs text-theme-beige uppercase tracking-wider mb-1">Alias Cristobal</p>
+                            <p class="font-sans font-medium font-mono text-sm text-white truncate">0984250801</p>
+
+                        </div>
+                        <button onclick="copyText('123456')" class="text-theme-beige hover:text-theme-lightrust p-3 bg-theme-lightgreen/40 rounded-lg transition-colors flex-shrink-0" title="Copiar Alias">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="font-sans text-xs italic text-theme-beige">¡Muchas gracias por acompañarnos en este sueño!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Carrusel de Fotos -->
+    <section class="py-24 bg-theme-bg overflow-hidden">
+        <div class="max-w-5xl mx-auto px-6 reveal">
+            <h2 class="font-script text-5xl md:text-6xl text-center text-theme-darkgreen mb-6">Nuestra Historia</h2>
+            <p class="font-sans text-center text-theme-darkrust mb-12 uppercase tracking-widest text-sm">Momentos Inolvidables</p>
+            
+            <div class="relative w-full overflow-hidden rounded-2xl shadow-xl border-4 border-white" id="carousel">
+                <!-- Slides Container -->
+                <div class="flex transition-transform duration-700 ease-in-out" id="carousel-track">
+                    
+                    <!-- Slide 1 -->
+                    <!-- Contenedor fijo de altura con object-contain para no cortar -->
+                    <div class="min-w-full relative h-[50vh] md:h-[70vh] bg-theme-bg flex items-center justify-center">
+                        <div class="absolute inset-0 bg-theme-darkgreen/10 z-10 pointer-events-none"></div>
+                        <img src="3.jpeg" class="w-full h-full object-contain" alt="Mica y Cris 1">
+                    </div>
+                    
+                    <!-- Slide 2 -->
+                    <div class="min-w-full relative h-[50vh] md:h-[70vh] bg-theme-bg flex items-center justify-center">
+                        <div class="absolute inset-0 bg-theme-darkgreen/10 z-10 pointer-events-none"></div>
+                        <img src="4.jpeg" class="w-full h-full object-contain" alt="Mica y Cris 2">
+                    </div>
+                    
+                    <!-- Slide 3 -->
+                    <div class="min-w-full relative h-[50vh] md:h-[70vh] bg-theme-bg flex items-center justify-center">
+                        <div class="absolute inset-0 bg-theme-darkgreen/10 z-10 pointer-events-none"></div>
+                        <img src="2.jpeg" class="w-full h-full object-contain" alt="Mica y Cris 3">
+                    </div>
+                    
+                    <!-- Slide 4 -->
+                    <div class="min-w-full relative h-[50vh] md:h-[70vh] bg-theme-bg flex items-center justify-center">
+                        <div class="absolute inset-0 bg-theme-darkgreen/10 z-10 pointer-events-none"></div>
+                        <img src="6.jpeg" class="w-full h-full object-contain" alt="Mica y Cris 4">
+                    </div>
+                </div>
+
+                <!-- Controles Prev/Next -->
+                <button id="prevBtn" class="absolute top-1/2 left-4 md:left-6 -translate-y-1/2 bg-white/70 hover:bg-white p-3 md:p-4 rounded-full text-theme-darkrust transition shadow-md z-20 focus:outline-none">
+                    <i class="fa-solid fa-chevron-left text-lg"></i>
+                </button>
+                <button id="nextBtn" class="absolute top-1/2 right-4 md:right-6 -translate-y-1/2 bg-white/70 hover:bg-white p-3 md:p-4 rounded-full text-theme-darkrust transition shadow-md z-20 focus:outline-none">
+                    <i class="fa-solid fa-chevron-right text-lg"></i>
+                </button>
+
+                <!-- Indicadores (Puntos) -->
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-20" id="carousel-dots">
+                    <button class="w-3 h-3 rounded-full bg-white transition-all duration-300 shadow-sm"></button>
+                    <button class="w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-all duration-300 shadow-sm"></button>
+                    <button class="w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-all duration-300 shadow-sm"></button>
+                    <button class="w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-all duration-300 shadow-sm"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RSVP -->
+    <section class="py-24 px-6 text-center bg-white">
+        <div class="max-w-2xl mx-auto reveal">
+            <h2 class="font-script text-5xl md:text-6xl text-theme-darkgreen mb-6">Confirmación de Asistencia</h2>
+            <p class="font-sans text-gray-600 mb-10 leading-relaxed">
+                Por cuestiones de organización, te pedimos que confirmes tu asistencia antes del <strong>15 de Noviembre de 2026</strong>. <br>¡Esperamos contar con tu presencia!
+            </p>
+            
+            <!-- Link to WhatsApp -->
+            <a href="https://wa.me/+595994922451?text=¡Hola!%20Confirmo%20mi%20asistencia%20a%20la%20boda%20de%20Mica%20y%20Cristobal." target="_blank" class="inline-flex items-center justify-center gap-3 bg-theme-darkrust text-white px-8 py-4 rounded-full hover:bg-theme-lightrust transition-colors duration-300 font-sans tracking-wide shadow-md">
+                <i class="fa-brands fa-whatsapp text-xl"></i>
+                CONFIRMAR POR WHATSAPP
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-theme-bg py-10 text-center text-theme-darkgreen border-t border-theme-beige/30">
+        <h2 class="font-script text-4xl mb-4">Mica & Cris</h2>
+        <p class="font-sans text-xs uppercase tracking-widest text-theme-lightgreen">¡Gracias por ser parte de nuestra historia!</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast">¡Copiado al portapapeles!</div>
+
+    <!-- Cargar la API de YouTube -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // 0. Control de Audio con YouTube
+        const enterBtn = document.getElementById('enter-btn');
+        const audioOverlay = document.getElementById('audio-overlay');
+        const musicToggleBtn = document.getElementById('music-toggle');
+        const musicIcon = document.getElementById('music-icon');
+        let isPlaying = false;
+        let player;
+
+        // Esta función es llamada automáticamente por la API de YouTube
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                height: '0',
+                width: '0',
+                // ID del video de YouTube: Carlos Rivera - Otras Vidas
+                videoId: 'F1COh7t3el4', 
+                playerVars: {
+                    'autoplay': 0,
+                    'controls': 0,
+                    'showinfo': 0,
+                    'rel': 0,
+                    'loop': 1,
+                    // Necesario para el loop en YouTube iframe API
+                    'playlist': 'PZJy77c2rQg' 
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        // Se ejecuta cuando el reproductor de YouTube está listo
+        function onPlayerReady(event) {
+            // Bajamos un poco el volumen
+            player.setVolume(50);
+            
+            // Habilitamos el botón ahora que el reproductor está listo
+            enterBtn.addEventListener('click', () => {
+                // Iniciar música
+                player.playVideo();
+                isPlaying = true;
+                musicIcon.classList.remove('fa-volume-xmark');
+                musicIcon.classList.add('fa-volume-high');
+
+                // Ocultar overlay
+                audioOverlay.classList.add('hidden');
+                setTimeout(() => {
+                    audioOverlay.style.display = 'none';
+                }, 500);
+
+                // Mostrar botón flotante
+                musicToggleBtn.style.display = 'flex';
+                
+                // Iniciar animaciones de scroll
+                reveal();
+            });
+        }
+
+        // Control del botón flotante
+        musicToggleBtn.addEventListener('click', () => {
+            if (player && player.getPlayerState) {
+                const state = player.getPlayerState();
+                // 1 = playing, 2 = paused
+                if (state === 1) { 
+                    player.pauseVideo();
+                    musicIcon.classList.remove('fa-volume-high');
+                    musicIcon.classList.add('fa-volume-xmark');
+                    isPlaying = false;
+                } else {
+                    player.playVideo();
+                    musicIcon.classList.remove('fa-volume-xmark');
+                    musicIcon.classList.add('fa-volume-high');
+                    isPlaying = true;
+                }
+            }
+        });
+
+        // 1. Configuración de la cuenta regresiva
+        // Fecha al 5 de Diciembre 18:00
+        const weddingDate = new Date("Dec 5, 2026 18:00:00").getTime();
+
+        const timer = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = weddingDate - now;
+
+            if (distance < 0) {
+                clearInterval(timer);
+                document.getElementById("days").innerText = "00";
+                document.getElementById("hours").innerText = "00";
+                document.getElementById("minutes").innerText = "00";
+                document.getElementById("seconds").innerText = "00";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Añadir ceros a la izquierda si es menor a 10
+            document.getElementById("days").innerText = days < 10 ? "0" + days : days;
+            document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+            document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+            document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+        }, 1000);
+
+        // 2. Función para copiar texto al portapapeles (Cuenta/Alias)
+        function copyText(text) {
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            
+            showToast();
+        }
+
+        function showToast() {
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // 3. Animaciones al hacer scroll (Intersection Observer)
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+
+        window.addEventListener("scroll", reveal);
+        // Disparar una vez al cargar por si hay elementos ya visibles
+        reveal();
+
+        // 4. Lógica del Carrusel de Fotos
+        const track = document.getElementById('carousel-track');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const dotsNav = document.getElementById('carousel-dots');
+        
+        if(track && nextBtn && prevBtn && dotsNav) {
+            const slides = Array.from(track.children);
+            const dots = Array.from(dotsNav.children);
+            let currentIndex = 0;
+            let carouselInterval;
+
+            function updateCarousel(index) {
+                // Mover el track horizontalmente
+                track.style.transform = `translateX(-${index * 100}%)`;
+                
+                // Actualizar los puntos indicadores visualmente
+                dots.forEach(dot => {
+                    dot.classList.remove('bg-white');
+                    dot.classList.add('bg-white/50');
+                });
+                dots[index].classList.remove('bg-white/50');
+                dots[index].classList.add('bg-white');
+            }
+
+            function moveToNextSlide() {
+                currentIndex = (currentIndex === slides.length - 1) ? 0 : currentIndex + 1;
+                updateCarousel(currentIndex);
+            }
+
+            function moveToPrevSlide() {
+                currentIndex = (currentIndex === 0) ? slides.length - 1 : currentIndex - 1;
+                updateCarousel(currentIndex);
+            }
+
+            // Event Listeners para las flechas
+            nextBtn.addEventListener('click', () => {
+                moveToNextSlide();
+                resetInterval();
+            });
+
+            prevBtn.addEventListener('click', () => {
+                moveToPrevSlide();
+                resetInterval();
+            });
+
+            // Event Listeners para los puntos
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    currentIndex = index;
+                    updateCarousel(currentIndex);
+                    resetInterval();
+                });
+            });
+
+            // Auto-play (Cambio automático cada 4 segundos)
+            function startInterval() {
+                carouselInterval = setInterval(moveToNextSlide, 4000);
+            }
+
+            // Reiniciar el auto-play si el usuario interactúa manualmente
+            function resetInterval() {
+                clearInterval(carouselInterval);
+                startInterval();
+            }
+
+            // Iniciar auto-play al cargar la página
+            startInterval();
+        }
+    </script>
+</body>
+</html>
